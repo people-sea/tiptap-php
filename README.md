@@ -276,6 +276,8 @@ new \Tiptap\Editor([
 ])
 ```
 
+The `Table` extension renders stored column widths using a `colgroup`. Tables without stored widths keep their original HTML. You can configure `cellMinWidth` (25 pixels by default) to match your JavaScript editor, for example `new \Tiptap\Nodes\Table(['cellMinWidth' => 50])`.
+
 ### Extend existing extensions
 If you need to change minor details of the supported extensions, you can just extend an extension.
 
