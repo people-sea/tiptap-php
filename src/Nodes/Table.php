@@ -28,10 +28,17 @@ class Table extends Node
 
     public function renderHTML($node, $HTMLAttributes = [])
     {
+        if (! isset($node->content[0])) {
+            return [
+                'table',
+                HTML::mergeAttributes($this->options['HTMLAttributes'], $HTMLAttributes),
+                ['tbody', 0],
+            ];
+        }
+
         $columns = [];
         $totalWidth = 0;
         $fixedWidth = true;
-        $hasColumnWidth = false;
         $cellMinWidth = (float) $this->options['cellMinWidth'];
 
         foreach ($node->content[0]->content ?? [] as $cell) {
@@ -42,9 +49,7 @@ class Table extends Node
                 $columnWidth = (float) ($cell->attrs->colwidth[$columnIndex] ?? 0);
                 $totalWidth += $columnWidth ?: $cellMinWidth;
 
-                if ($columnWidth) {
-                    $hasColumnWidth = true;
-                } else {
+                if (! $columnWidth) {
                     $fixedWidth = false;
                 }
 
@@ -54,14 +59,6 @@ class Table extends Node
 
                 $columns[] = ['col', ['style' => $columnStyle]];
             }
-        }
-
-        if (! $hasColumnWidth) {
-            return [
-                'table',
-                HTML::mergeAttributes($this->options['HTMLAttributes'], $HTMLAttributes),
-                ['tbody', 0],
-            ];
         }
 
         if (empty($HTMLAttributes['style'])) {

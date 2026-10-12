@@ -51,7 +51,7 @@ test('simple table node gets rendered correctly', function () {
         ],
     ]))->setContent($document)->getHTML();
 
-    expect($result)->toEqual('<table><tbody><tr><th><p>text in header cell</p></th></tr></tbody></table>');
+    expect($result)->toEqual('<table style="min-width: 25px;"><colgroup><col style="min-width: 25px"></colgroup><tbody><tr><th><p>text in header cell</p></th></tr></tbody></table>');
 });
 
 test('table node gets rendered correctly', function () {
@@ -261,21 +261,36 @@ test('table column widths are rendered correctly', function () {
     expect($editor->setContent($result)->getHTML())->toEqual($expected);
 });
 
-test('tables without stored widths preserve their configured sizing', function ($html, $expectedBody) {
-    $result = (new Editor([
+test('tables without stored widths are rendered correctly', function ($html, $options, $expected) {
+    $editor = new Editor([
         'extensions' => [
             new StarterKit,
-            new Table(['HTMLAttributes' => ['style' => 'min-width: 500px']]),
+            new Table($options),
             new TableRow,
             new TableCell,
         ],
-    ]))->setContent($html)->getHTML();
+    ]);
 
-    expect($result)->toEqual('<table style="min-width: 500px;"><tbody>' . $expectedBody . '</tbody></table>');
+    $result = $editor->setContent($html)->getHTML();
+
+    expect($result)->toEqual($expected);
+    expect($editor->setContent($result)->getHTML())->toEqual($expected);
 })->with([
-    'unresized' => ['<table><tr><td><p>Cell</p></td></tr></table>', '<tr><td><p>Cell</p></td></tr>'],
-    'zero widths' => ['<table><tr><td data-colwidth="0,0" colspan="2"><p>Cell</p></td></tr></table>', '<tr><td colspan="2" data-colwidth="0,0"><p>Cell</p></td></tr>'],
-    'empty' => ['<table></table>', ''],
+    'default minimum width' => [
+        '<table><tr><td><p>A</p></td><td><p>B</p></td><td><p>C</p></td></tr></table>',
+        [],
+        '<table style="min-width: 75px;"><colgroup><col style="min-width: 25px"><col style="min-width: 25px"><col style="min-width: 25px"></colgroup><tbody><tr><td><p>A</p></td><td><p>B</p></td><td><p>C</p></td></tr></tbody></table>',
+    ],
+    'zero widths with configured sizing' => [
+        '<table><tr><td data-colwidth="0,0" colspan="2"><p>Cell</p></td></tr></table>',
+        ['HTMLAttributes' => ['style' => 'min-width: 500px']],
+        '<table style="min-width: 500px; min-width: 50px;"><colgroup><col style="min-width: 25px"><col style="min-width: 25px"></colgroup><tbody><tr><td colspan="2" data-colwidth="0,0"><p>Cell</p></td></tr></tbody></table>',
+    ],
+    'empty' => [
+        '<table></table>',
+        ['HTMLAttributes' => ['style' => 'min-width: 500px']],
+        '<table style="min-width: 500px;"><tbody></tbody></table>',
+    ],
 ]);
 
 test('configured table attributes and minimum width are rendered correctly', function () {
